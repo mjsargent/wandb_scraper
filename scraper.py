@@ -9,7 +9,7 @@ def grab_runs_based_on_names(runs, name_list, x_name, y_name):
     filtered_runs = []
     for a_run in runs:
         if a_run.name in name_list:
-            history = a_run.history()
+            history = a_run.history(samples=1e3)
             x = history[x_name].values.tolist()
             y = history[y_name].values.tolist()
             filtered_runs.append([x, y])
@@ -36,9 +36,7 @@ def compute_line_equation(x1, y1, x2, y2):
 def compute_y_value(x, m, c):
     return m * x + c
 
-def sample_x_points(a_filtered_run, number_of_points = 1000):
-    max_x = max(a_filtered_run)
-    min_x = min(a_filtered_run)
+def sample_x_points(a_filtered_run, min_x, max_x, number_of_points = 200):
     interval = (max_x - min_x)/number_of_points
     x_points = [i * interval for i in range(number_of_points)]
     return x_points
@@ -49,7 +47,7 @@ def make_filtered_runs_have_same_points(runs, x_points):
         y_points = []
         for a_x in x_points:
             for index, x_value in enumerate(a_run[0]):
-                if x_value > a_x: 
+                if x_value >= a_x: 
                     x1 = a_run[0][index - 1] 
                     y1 = a_run[1][index - 1]
                     x2 = a_run[0][index] 
@@ -58,6 +56,7 @@ def make_filtered_runs_have_same_points(runs, x_points):
                     y_value = a_x * m + c
                     y_points.append(y_value)
                     break
+        assert len(y_points) == len(x_points)
         same_point_runs.append([x_points, y_points])
     return same_point_runs
 
@@ -67,20 +66,25 @@ def compute_mean_and_std_error(runs):
     for index, a_x_point in enumerate(runs[0][0]):
         points = []
         for a_run in runs:
-            try:
-                points.append(a_run[1][index])
-            except:
-                import ipdb; ipdb.set_trace() 
+            points.append(a_run[1][index])
         points = np.array(points)
         mean_list.append(np.mean(points))
         std_error_list.append(stats.sem(points))
     return mean_list, std_error_list
 
+def get_min_x_max_x(runs):
+    min_x = max([a_run[0][0] for a_run in runs])
+    max_x = min([a_run[0][-1] for a_run in runs])
+    return min_x, max_x
+    
 def process_run_batch(runs):
     runs = filter_out_nans(runs)
-    x_points = sample_x_points(runs[0][0])
+    min_x, max_x = get_min_x_max_x(runs)
+    x_points = sample_x_points(runs[0][0], min_x, max_x)
     runs = make_filtered_runs_have_same_points(runs, x_points) 
     mean, std_error = compute_mean_and_std_error(runs) 
+    plt.plot(x_points, mean)
+    plt.fill_between(x_points, np.array(mean) - np.array(std_error), np.array(mean) + np.array(std_error))
     return x_points, mean, std_error
 
 def main():
@@ -101,7 +105,6 @@ def main():
         y_name="fixed visiation counts",
     )
     x_points, mean, std_error = process_run_batch(curious_true_uncertainty_true_noisy_true_4_rooms)
-    plt.plot(x_points, mean)
     plt.show()
 
 if __name__ == "__main__":
