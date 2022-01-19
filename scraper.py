@@ -106,12 +106,12 @@ class Line:
         max_x = min([a_run[0][-1] for a_run in self.runs])
         return min_x, max_x
 
-    def plot_line(self, color=None, alpha=None):
+    def plot_line(self, color=None, alpha=None, label=None):
         if color == None:
             color = self.color
         if alpha == None:
             alpha = 0.2
-        plt.plot(self.x_points, self.mean, color=self.color)
+        plt.plot(self.x_points, self.mean, color=self.color, label=label)
         plt.fill_between(
             self.x_points,
             np.array(self.mean) - np.array(self.std_error),
