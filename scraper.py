@@ -2,6 +2,8 @@ import pandas as pd
 import wandb
 import math
 import matplotlib.pyplot as plt 
+from scipy import stats
+import numpy as np
 
 def grab_runs_based_on_names(runs, name_list, x_name, y_name):
     filtered_runs = []
@@ -59,6 +61,28 @@ def make_filtered_runs_have_same_points(runs, x_points):
         same_point_runs.append([x_points, y_points])
     return same_point_runs
 
+def compute_mean_and_std_error(runs):
+    mean_list = []
+    std_error_list = []
+    for index, a_x_point in enumerate(runs[0][0]):
+        points = []
+        for a_run in runs:
+            try:
+                points.append(a_run[1][index])
+            except:
+                import ipdb; ipdb.set_trace() 
+        points = np.array(points)
+        mean_list.append(np.mean(points))
+        std_error_list.append(stats.sem(points))
+    return mean_list, std_error_list
+
+def process_run_batch(runs):
+    runs = filter_out_nans(runs)
+    x_points = sample_x_points(runs[0][0])
+    runs = make_filtered_runs_have_same_points(runs, x_points) 
+    mean, std_error = compute_mean_and_std_error(runs) 
+    return x_points, mean, std_error
+
 def main():
     api = wandb.Api()
     entity, project = "self-supervisor", "minigrid"  # set to your entity and project
@@ -76,11 +100,8 @@ def main():
         x_name="_step",
         y_name="fixed visiation counts",
     )
-    curious_true_uncertainty_true_noisy_true_4_rooms = filter_out_nans(curious_true_uncertainty_true_noisy_true_4_rooms)
-    x_points = sample_x_points(curious_true_uncertainty_true_noisy_true_4_rooms[0][0])
-    curious_true_uncertainty_true_noisy_true_4_rooms = make_filtered_runs_have_same_points(curious_true_uncertainty_true_noisy_true_4_rooms, x_points) 
-    mean_line = 
-    plt.plot(curious_true_uncertainty_true_noisy_true_4_rooms[0][0], curious_true_uncertainty_true_noisy_true_4_rooms[0][1])
+    x_points, mean, std_error = process_run_batch(curious_true_uncertainty_true_noisy_true_4_rooms)
+    plt.plot(x_points, mean)
     plt.show()
 
 if __name__ == "__main__":
