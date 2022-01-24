@@ -1,4 +1,3 @@
-import pandas as pd
 import wandb
 import math
 import matplotlib.pyplot as plt
@@ -111,13 +110,13 @@ class Line:
             color = self.color
         if alpha == None:
             alpha = 0.2
-        plt.plot(self.x_points, self.mean, color=self.color, label=label)
+        plt.plot(self.x_points, self.mean, color=color, label=label)
         plt.fill_between(
             self.x_points,
             np.array(self.mean) - np.array(self.std_error),
             np.array(self.mean) + np.array(self.std_error),
-            alpha=0.2,
-            color=self.color,
+            alpha=alpha,
+            color=color,
         )
 
 def main():
