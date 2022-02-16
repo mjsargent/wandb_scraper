@@ -11,9 +11,9 @@ class Line:
         run_names,
         x_quantity,
         y_quantity,
-        points_to_plot=200,
-        entity="self-supervisor",
-        project="minigrid",
+        points_to_plot=1000000,
+        entity="mjsargent",
+        project="SRTabular",
         color="blue",
     ):
         self.points_to_plot = points_to_plot
@@ -38,12 +38,14 @@ class Line:
 
     def grab_runs_based_on_names(self):
         filtered_runs = []
+        
         for a_run in self.runs:
             if a_run.name in self.run_names:
                 history = a_run.history(samples=5 * self.points_to_plot)
-                x = history[self.x_quantity].values.tolist()
-                y = history[self.y_quantity].values.tolist()
-                filtered_runs.append([x, y])
+                if self.y_quantity in history.keys():    
+                    x = history[self.x_quantity].values.tolist()
+                    y = history[self.y_quantity].values.tolist()
+                    filtered_runs.append([x, y])
         return filtered_runs
 
     def filter_out_nans(self):
