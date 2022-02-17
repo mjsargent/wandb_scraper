@@ -1,5 +1,6 @@
 import wandb
 import math
+import pickle
 import matplotlib.pyplot as plt
 from scipy import stats
 import numpy as np
@@ -15,10 +16,14 @@ class Line:
         entity="mjsargent",
         project="SRTabular",
         color="blue",
+        local_path = None,
+        linestyle = "-"
     ):
+        self.local_path = local_path
+        self.linestyle = linestyle
         self.points_to_plot = points_to_plot
         self.run_names = run_names
-        self.api = wandb.Api()
+        self.api = wandb.Api(timeout = 30)
         self.runs = self.api.runs(entity + "/" + project)
         self.x_quantity = x_quantity
         self.y_quantity = y_quantity
@@ -38,14 +43,25 @@ class Line:
 
     def grab_runs_based_on_names(self):
         filtered_runs = []
-        
-        for a_run in self.runs:
-            if a_run.name in self.run_names:
-                history = a_run.history(samples=5 * self.points_to_plot)
-                if self.y_quantity in history.keys():    
-                    x = history[self.x_quantity].values.tolist()
-                    y = history[self.y_quantity].values.tolist()
-                    filtered_runs.append([x, y])
+        if self.local_path == None:
+            for a_run in self.runs:
+                if a_run.name in self.run_names:
+                    history = a_run.history(samples=5 * self.points_to_plot)
+                    if self.y_quantity in history.keys():
+                        x = history[self.x_quantity].values.tolist()
+                        y = history[self.y_quantity].values.tolist()
+                        filtered_runs.append([x, y])
+        else:
+            with open(self.local_path, "rb") as f:
+                run_histories = pickle.load(f)
+
+            for set_hist in run_histories.values():
+                for history in set_hist:
+                    if self.y_quantity in history.keys():
+                        x = history[self.x_quantity].values.tolist()
+                        y = history[self.y_quantity].values.tolist()
+                        filtered_runs.append([x, y])
+
         return filtered_runs
 
     def filter_out_nans(self):
@@ -112,7 +128,8 @@ class Line:
             color = self.color
         if alpha == None:
             alpha = 0.2
-        plt.plot(self.x_points, self.mean, color=color, label=label)
+        alpha_plot = 0.6
+        plt.plot(self.x_points, self.mean, color=color, label=label, alpha =  alpha_plot, linestyle = self.linestyle, linewidth = 2.5)
         plt.fill_between(
             self.x_points,
             np.array(self.mean) - np.array(self.std_error),
