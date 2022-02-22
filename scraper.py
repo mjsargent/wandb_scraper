@@ -123,20 +123,47 @@ class Line:
         max_x = min([a_run[0][-1] for a_run in self.runs])
         return min_x, max_x
 
-    def plot_line(self, color=None, alpha=None, label=None):
+    def plot_line(self, ax,  color=None, alpha=None, label=None, inset_axis = None, limits: list = []):
         if color == None:
             color = self.color
         if alpha == None:
             alpha = 0.2
         alpha_plot = 0.6
-        plt.plot(self.x_points, self.mean, color=color, label=label, alpha =  alpha_plot, linestyle = self.linestyle, linewidth = 2.5)
-        plt.fill_between(
+        ax.plot(self.x_points, self.mean, color=color, label=label, alpha =  alpha_plot, linestyle = self.linestyle, linewidth = 2.5)
+        ax.fill_between(
             self.x_points,
             np.array(self.mean) - np.array(self.std_error),
             np.array(self.mean) + np.array(self.std_error),
             alpha=alpha,
             color=color,
         )
+
+        if inset_axis !=  None:
+            inset_axis.plot(self.x_points, self.mean, color=color, label=label, alpha =  alpha_plot, linestyle = self.linestyle, linewidth = 2.5)
+            inset_axis.fill_between(
+            self.x_points,
+            np.array(self.mean) - np.array(self.std_error),
+            np.array(self.mean) + np.array(self.std_error),
+            alpha=alpha,
+            color=color,
+            )
+            inset_axis.plot
+            # sub region of the original image
+            x1, x2, y1, y2 = limits
+            #x1, x2, y1, y2 = 9500, 10999, 0, 1.1
+            inset_axis.set_xlim(x1, x2)
+            inset_axis.set_ylim(y1, y2)
+            inset_axis.xaxis.set_tick_params(labelsize=8)
+            inset_axis.yaxis.set_tick_params(labelsize=8)
+           # inset_axis.set_xticks([])
+           # inset_axis.set_yticks([])
+            rect, connect = ax.indicate_inset_zoom(inset_axis, edgecolor="black", label='_nolegend_')
+            connect[0].set_visible(False)
+            connect[1].set_visible(False)
+            connect[2].set_visible(False)
+            connect[3].set_visible(False)
+
+        return ax
 
 def main():
     line_1 = Line(

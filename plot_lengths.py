@@ -72,16 +72,20 @@ for env in envs:
             print(f"pickled: {sweep_name}_{env}_{agent}.pkl")
 #  for num_skip in num_skips: - ignore looping this for now
 num_skip = num_skips[0]
-limits = [9500, 10999, -0.01, 1]
 # plot backwards because of some oddities with the inset axes zoom
+#inset_location = [13250, 0.05,7000, 0.25]
+#limits = [9500, 11499, -0.01, 0.4] # x1 x2 y1 y2
+inset_location = [13250, 30 ,6750, 70]
+
+limits = [9500, 11499, -0.01, 99] # x1 x2 y1 y2
+
 for a, env in enumerate(reversed(envs)):
     inset_axis = None
     fig, ax = plt.subplots()
     ax.clear()
-
     plot_inset = True if a == 2 else False
     if plot_inset:
-        inset_axis = ax.inset_axes([12750, -0.25, 7250, 1 ], transform = ax.transData)
+        inset_axis = ax.inset_axes(inset_location, transform = ax.transData)
     for agent in agents:
 
         print(agent)
@@ -90,7 +94,7 @@ for a, env in enumerate(reversed(envs)):
 
         this_line = Line(run_names = run_names,
                          x_quantity = "_step",
-                         y_quantity = "test_episode_reward:",
+                         y_quantity = "test_lengths",
                          color = agent_colour[agent],
                          project = "SRTabular",
                          entity = "mjsargent",
@@ -98,24 +102,21 @@ for a, env in enumerate(reversed(envs)):
                          linestyle = agent_line_style[agent])
         ax = this_line.plot_line(label = agent, ax = ax, inset_axis = inset_axis, limits = limits)
     plt.xlabel("Episodes", fontsize="x-large")
-    plt.ylabel("Average Episode Return", fontsize="x-large")
-    plt.xlim(0,19999)
-    plt.ylim(-1,1.2)
+    plt.ylabel("Average Number of Decisions", fontsize="x-large")
+    plt.xlim(0,20000)
+    plt.ylim(-20,100)
     plt.axvline(x=10000, color='grey', linestyle='--')
     plt.title(env_title[env], fontsize="xx-large")
     plt.tight_layout()
-    if a == 2:
+    #if a == 2:
         #legend_without_duplicate_labels(ax, agents)
-
-        plt.legend(fontsize="x-large", ncol=2)
+        #plt.legend(fontsize="x-large", ncol=2, loc = "upper right")
 
     plt.grid()
-    plt.savefig(f"./figures/Test_Episode_Reward_{env}_skip_{num_skip}.png", dpi=1200)
+    plt.savefig(f"./figures/Avg_lengths_{env}_skip_{num_skip}.png", dpi=1200)
     if a == 2:
         print(inset_axis.patches)
         for p in reversed(list(inset_axis.patches)):    # note the list!
             p.set_visible(False)
             p.remove()
-
-
 
