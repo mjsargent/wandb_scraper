@@ -12,21 +12,13 @@ plt.rc('font', family='serif')
 plt.rc('xtick', labelsize='large')
 plt.rc('ytick', labelsize='large')
 
-def legend_without_duplicate_labels(ax, agents):
-    handles, labels = ax.get_legend_handles_labels()
-    unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if (l not in labels[:i] and l in agents)]
-
-    ax.legend(*zip(*unique), fontsize = "x-large", ncol = 2)
 #wandb init
 api = wandb.Api(timeout=60)
 
-#sweep_name = "wgzt3439"
+# define sweep name if
 sweep_name = "71s9i8je"
-#runs = api.runs(path="mjsargent/SRTabular", filters = {"config.max_skips": "7"})
-#runs = api.runs(path="mjsargent/SRTabular", filters = {"tags": {"$in": ["hairpinharder_sweep"]}})
-#sweep =api.sweep(f"{sweep_name}", filters = {"config.max_skips": "7"})
-#"#1AFF1A","#1AFF1A"]
-# define sweep parametersp
+
+# define sweep parameters
 agents = ["q", "sq", "sr", "sr_extend", "tsr"]
 #colours = ["#AA4499", "#CC6677", "#DDCC77", "#117733", "#88CCEE"]
 colours = ["#1A85FF","#000000",  "#1AFF1A", "#D41159", "#5D3A9B"]
@@ -55,11 +47,13 @@ for env in envs:
     for agent in agents:
         if not os.path.exists(f"{sweep_name}_{env}_{agent}.pkl"):
             print(f"downloading: {sweep_name}_{env}_{agent}.pkl")
-            print(os.path.exists(f"{sweep_name}_{env}_{agent}.pkl"))
             run_names = defaultdict(list)
             run_histories = defaultdict(list)
             env_key = env + "_sweep"
+
+            # this is the key line to edit to change the runs you are grabbing
             runs = api.runs(path="mjsargent/SRTabular", filters = {"tags": {"$in": [env_key]}, "config.agent": agent})
+
             for i, run in enumerate(runs):
                 print("processing run", i)
                 key = (run.config["agent"], run.config["env"], run.config["max_skips"])
