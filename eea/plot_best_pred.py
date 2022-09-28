@@ -128,7 +128,7 @@ for i, agent in enumerate(agents):
 
 ### PLOTTING
 
-for agent in agents:
+for agent in agents_dqn:
 
     print(agent)
     run_names = []
@@ -144,6 +144,27 @@ for agent in agents:
                         local_path = history_file,
                         linestyle = agent_line_style[agent])
     ax = this_line.plot_line(label = agent, ax = ax, inset_axis = inset_axis, limits = None)
+
+for agent_p in agents_PRAE:
+    print(agent_p)
+    run_names = []
+    history_file = f"{env}_{agent_p}.pkl"
+    x_q = x_quantity_dict[agent_p]
+    y_q = y_quantity_dict[agent_p]
+    # find mean of converged prae performance
+    this_line = Line(run_names = run_names,
+                        x_quantity = x_q,
+                        y_quantity = y_q,
+                        color = agent_colour[agent_p],
+                        project = "predator_prey",
+                        entity = "barry_lab",
+                        local_path = history_file,
+                        linestyle = agent_line_style[agent_p],
+                        mean_idx = 10
+                     )
+    ax = this_line.plot_line(label = agent_p, ax = ax, inset_axis = inset_axis, limits = None)
+
+
 plt.xlabel("Cummulative Steps", fontsize="x-large")
 plt.ylabel("Average Return", fontsize="x-large")
 plt.xlim(0,30)

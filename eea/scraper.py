@@ -17,13 +17,15 @@ class Line:
         project="SRTabular",
         color="blue",
         local_path = None,
-        linestyle = "-"
+        linestyle = "-",
+        mean_idx = -1
     ):
         self.local_path = local_path
         self.linestyle = linestyle
         self.points_to_plot = points_to_plot
         self.run_names = run_names
         self.api = wandb.Api(timeout = 30)
+        self.mean_idx = mean_idx
         self.runs = self.api.runs(entity + "/" + project)
         self.x_quantity = x_quantity
         self.y_quantity = y_quantity
@@ -109,13 +111,27 @@ class Line:
     def compute_mean_and_std_error(self):
         mean_list = []
         std_error_list = []
-        for index, a_x_point in enumerate(self.runs[0][0]):
-            points = []
+        if self.mean_idx > -1:
+            # find means of each run
+            run_means = []
             for a_run in self.runs:
-                points.append(a_run[1][index])
-            points = np.array(points)
-            mean_list.append(np.mean(points))
-            std_error_list.append(stats.sem(points))
+                a_mean = np.mean(a_run[1][self.mean_idx:])
+
+            for index, a_x_point in enumerate(self.runs[0][0]):
+                points = []
+                for i in range(len(self.runs)):
+                    points.append(a_mean)
+                points = np.array(points)
+                mean_list.append(np.mean(points))
+                std_error_list.append(stats.sem(points))
+        else:
+            for index, a_x_point in enumerate(self.runs[0][0]):
+                points = []
+                for a_run in self.runs:
+                    points.append(a_run[1][index])
+                points = np.array(points)
+                mean_list.append(np.mean(points))
+                std_error_list.append(stats.sem(points))
         return mean_list, std_error_list
 
     def get_min_x_max_x(self):
