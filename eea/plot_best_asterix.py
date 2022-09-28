@@ -28,43 +28,26 @@ def legend_without_duplicate_labels(ax, agents):
 # episode
 # episode_length
 # total_steps
-#
-## A2C:
-# ReturnAverage
-# LengthAverage
-# CumuCompletedTrajs (episodes)
-# CumuSteps (steps in env)
-#
-###
 
-
-# NB - does not change the axis labels!
-
-x_quantity_dqn = "_step"
-y_quantity_dqn = "return"
-
-
-
-env = "pred_prey"
+# NB - does not change the axis labels or the file name!
+x_quantity_dqn = "Frame"
+y_quantity_dqn = "Return"
+env = "asterix"
 # define sweep parametersp
 #colours = ["#AA4499", "#CC6677", "#DDCC77", "#117733", "#88CCEE"]
 colours = ["#1A85FF","#000000",  "#1AFF1A", "#D41159", "#5D3A9B"]
-#titles = ["Junction", "Junction Hard", "Junction Very Hard"]
 linestyles = ["--", "--", "-", "-.", "-"]
+
 agent_colour = {}
 agent_line_style = {}
 
+x_quantity_dict = {}
+y_quantity_dict = {}
 #wandb init
 api = wandb.Api(timeout=60)
 
-agents_dqn = ["equivariant_dqn"]
-agents_PRAE = [ "PRAE_100", "PRAE_10000"]
-
-tags_dqn = ["best_pred_prey_sym"]
-tags_PRAE = ["best_pred_prey_PRAE_100", "best_pred_prey_PRAE_10000"]
-
-x_quantity_dict = {}
-y_quantity_dict = {}
+agents_dqn = ["equivariant_dqn_horizontal", "equivariant_dqn_vertical"]
+tags_dqn = ["asterix_vertical", "asterix_horizontal"]
 
 tags_dict = {}
 for tag, agent in zip(tags_dqn, agents_dqn):
@@ -79,30 +62,7 @@ for agent in agents_dqn:
             run_names = defaultdict(list)
             run_histories = defaultdict(list)
             env_key = tags_dict[agent]
-            runs = api.runs(path="barry_lab/predator_prey", filters = {"tags": {"$in": [env_key]}})
-            for i, run in enumerate(runs):
-                print("processing run", i)
-
-                run_histories[i].append(run.history(samples = 100000))
-
-            with open(f"{env}_{agent}.pkl", "wb") as f:
-                pickle.dump(run_histories, f)
-
-            print(f"pickled: {env}_{agent}.pkl")
-
-for tag, agent in zip(tags_PRAE, agents_PRAE):
-    tags_dict[agent] = tag
-    x_quantity_dict[agent] = x_quantity_dqn
-    y_quantity_dict[agent] = y_quantity_dqn
-
-for agent in agents_PRAE:
-
-    if not os.path.exists(f"{env}_{agent}.pkl"):
-            print(f"downloading: {env}_{agent}")
-            run_names = defaultdict(list)
-            run_histories = defaultdict(list)
-            env_key = tags_dict[agent]
-            runs = api.runs(path="barry_lab/PRAE_pred_prey", filters = {"tags": {"$in": [env_key]}})
+            runs = api.runs(path="barry_lab/minatar", filters = {"tags": {"$in": [env_key]}})
             for i, run in enumerate(runs):
                 print("processing run", i)
 
@@ -114,8 +74,7 @@ for agent in agents_PRAE:
             print(f"pickled: {env}_{agent}.pkl")
 
 
-
-agents =  agents_dqn + agents_PRAE
+agents = agents_dqn
 
 inset_axis = None
 fig, ax = plt.subplots()
@@ -139,15 +98,15 @@ for agent in agents:
                         x_quantity = x_q,
                         y_quantity = y_q,
                         color = agent_colour[agent],
-                        project = "predator_prey",
+                        project = "minatar",
                         entity = "barry_lab",
                         local_path = history_file,
                         linestyle = agent_line_style[agent])
     ax = this_line.plot_line(label = agent, ax = ax, inset_axis = inset_axis, limits = None)
-plt.xlabel("Cummulative Steps", fontsize="x-large")
-plt.ylabel("Average Return", fontsize="x-large")
-plt.xlim(0,30)
-plt.ylim(-10, 2)
+plt.xlabel("Frame", fontsize="x-large")
+plt.ylabel("Average Episode Return", fontsize="x-large")
+plt.xlim(0, 2000000)
+plt.ylim(0, 50)
 plt.title(env, fontsize="xx-large")
 plt.tight_layout()
 plt.legend(agents)
@@ -157,7 +116,8 @@ plt.legend(fontsize="x-large", ncol = 1)
 #if a == 2:
 
 plt.grid()
-plt.savefig(f"./figures/{env}_average_return.png", dpi=600)
+plt.savefig(f"./figures/{env}_average_episode_return.png", dpi=600)
+
 #if a == 2:
 #    print(inset_axis.patches)
 #jj    for p in reversed(list(inset_axis.patches)):    # note the list!
